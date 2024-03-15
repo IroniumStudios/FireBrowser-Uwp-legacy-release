@@ -1,20 +1,16 @@
 #include <Windows.h>
-#include <stdio.h>
-#include <tchar.h>
 #include <iostream>
+#include <string>
 
 // Function to check if a specific Windows SDK is available
 bool IsWindowsSDKPresent(const wchar_t* version)
 {
     HKEY hKey;
-    wchar_t keyPath[MAX_PATH];
+    std::wstring keyPath = L"SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows\\" + std::wstring(version);
     bool isPresent = false;
 
-    // Construct the registry key path for the Windows SDK
-    _snwprintf_s(keyPath, _countof(keyPath), L"SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows\\%s", version);
-
     // Open the registry key
-    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyPath, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyPath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
     {
         isPresent = true;
         RegCloseKey(hKey);
@@ -33,15 +29,16 @@ void RunFireCoreRuntime()
     {
         CloseHandle(pi.hThread);
         CloseHandle(pi.hProcess);
-        std::cout << "FireCoreRuntime.exe is running in the background." << std::endl;
+        std::wcout << L"FireCoreRuntime.exe is running in the background." << std::endl;
     }
     else
     {
-        std::cerr << "Failed to start FireCoreRuntime.exe." << std::endl;
+        std::wcerr << L"Failed to start FireCoreRuntime.exe." << std::endl;
     }
 }
 
-int main()
+// Function to handle Windows SDK presence and execute appropriate code
+void HandleWindowsSDKPresence()
 {
     // Check if Windows 10 SDK is present
     if (IsWindowsSDKPresent(L"v10.0"))
@@ -59,9 +56,16 @@ int main()
         // Neither Windows 10 nor Windows 8 SDK is available
         // Add your fallback code here for unsupported systems
     }
+}
+
+int main()
+{
+    // Handle Windows SDK presence and execute appropriate code
+    HandleWindowsSDKPresence();
 
     // Run FireCoreRuntime.exe when the UWP app is being run
     // You can trigger this function based on specific conditions when the UWP app is running.
+    RunFireCoreRuntime();
 
     return 0;
 }
